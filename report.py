@@ -236,6 +236,43 @@ class StudentExerciseReports():
             for exercise in all_exercises:
                 print(exercise)
 
+
+    def StudentExercises(self):
+
+        exercises = dict()
+
+        with sqlite3.connect(self.db_path) as conn:
+            db_cursor = conn.cursor()
+
+            db_cursor.execute("""
+                select
+                    e.Id ExerciseId,
+                    e.Name,
+                    s.Id,
+                    s.FirstName,
+                    s.LastName
+                from Exercise e
+                join StudentExercise se on se.ExerciseId = e.Id
+                join Student s on s.Id = se.StudentId
+            """)
+
+            dataset = db_cursor.fetchall()
+
+            for row in dataset:
+                exercise_id = row[0]
+                exercise_name = row[1]
+                student_id = row[2]
+                student_name = f'{row[3]} {row[4]}'
+                if exercise_name not in exercises:
+                    exercises[exercise_name] = [student_name]
+                else:
+                    exercises[exercise_name].append(student_name)
+            for exercise_name, students in exercises.items():
+                print(exercise_name)
+                for student in students:
+                    print(f'\t* {student}')
+
+
 #     def filtered_exercises(self, language):
 
 #         """Retrieve all cohort names"""
@@ -268,9 +305,9 @@ reports = StudentExerciseReports()
 # reports.all_exercises()
 # reports.JavaScript_exercises()
 # reports.filtered_exercises('JavaScript')  THIS ISN'T WORKING
-reports.all_instructors()
+# reports.all_instructors()
+reports.StudentExercises()
 
 # student = Student('Bart', 'Simpson', '@bart', 'Cohort 8')
 # print(f'{student.first_name} {student.last_name} is in {student.cohort}')
-
 
