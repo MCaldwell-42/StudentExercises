@@ -236,6 +236,215 @@ class StudentExerciseReports():
             for exercise in all_exercises:
                 print(exercise)
 
+
+    def ExerciseStudents(self):
+
+        exercises = dict()
+
+        with sqlite3.connect(self.db_path) as conn:
+            db_cursor = conn.cursor()
+
+            db_cursor.execute("""
+                select
+                    e.Id ExerciseId,
+                    e.Name,
+                    s.Id,
+                    s.FirstName,
+                    s.LastName
+                from Exercise e
+                join StudentExercise se on se.ExerciseId = e.Id
+                join Student s on s.Id = se.StudentId
+            """)
+
+            dataset = db_cursor.fetchall()
+
+            for row in dataset:
+                exercise_id = row[0]
+                exercise_name = row[1]
+                student_id = row[2]
+                student_name = f'{row[3]} {row[4]}'
+                if exercise_name not in exercises:
+                    exercises[exercise_name] = [student_name]
+                else:
+                    exercises[exercise_name].append(student_name)
+            for exercise_name, students in exercises.items():
+                print(exercise_name)
+                for student in students:
+                    print(f'\t* {student}')
+
+
+    def StudentExercises(self):
+
+        students = dict()
+
+        with sqlite3.connect(self.db_path) as conn:
+            db_cursor = conn.cursor()
+
+            db_cursor.execute("""
+                select
+                    e.Id ExerciseId,
+                    e.Name,
+                    s.Id,
+                    s.FirstName,
+                    s.LastName
+                from Exercise e
+                join StudentExercise se on se.ExerciseId = e.Id
+                join Student s on s.Id = se.StudentId
+            """)
+
+            dataset = db_cursor.fetchall()
+
+            for row in dataset:
+                exercise_id = row[0]
+                exercise_name = row[1]
+                student_id = row[2]
+                student_name = f'{row[3]} {row[4]}'
+                if student_name not in students:
+                    students[student_name] = [exercise_name]
+                else:
+                    students[student_name].append(exercise_name)
+            for student_name, exercises in students.items():
+                print(f'{student_name} is working on:')
+                for exercise in exercises:
+                    print(f'\t* {exercise}')
+
+
+    def InstructorExercises(self):
+
+        instructors = dict()
+
+        with sqlite3.connect(self.db_path) as conn:
+            db_cursor = conn.cursor()
+
+            db_cursor.execute("""
+                select
+                    e.Id ExerciseId,
+                    e.Name,
+                    i.Id,
+                    i.FirstName,
+                    i.LastName
+                from Exercise e
+                join StudentExercise se on se.ExerciseId = e.Id
+                join Instructor i on i.Id = se.InstructorId
+            """)
+
+            dataset = db_cursor.fetchall()
+
+            for row in dataset:
+                exercise_id = row[0]
+                exercise_name = row[1]
+                instructor_id = row[2]
+                instructor_name = f'{row[3]} {row[4]}'
+                if instructor_name not in instructors:
+                    instructors[instructor_name] = [exercise_name]
+                else:
+                    if exercise_name not in instructors[instructor_name]:
+                        instructors[instructor_name].append(exercise_name)
+                    else:
+                        pass
+            for instructor_name, exercises in instructors.items():
+                print(f'{instructor_name} has assigned:')
+                for exercise in exercises:
+                    print(f'\t* {exercise}')
+
+
+    def ErbodyExercises(self):
+
+        exercises = dict()
+
+        with sqlite3.connect(self.db_path) as conn:
+            db_cursor = conn.cursor()
+
+            db_cursor.execute("""
+                select
+                    e.Id ExerciseId,
+                    e.Name,
+                    i.Id InstructorId,
+                    i.FirstName,
+                    i.LastName,
+                    s.FirstName,
+                    s.LastName,
+                    s.Id
+                from Exercise e
+                join StudentExercise se on se.ExerciseId = e.Id
+                join Instructor i on i.Id = se.InstructorId
+                join Student s on s.Id = se.StudentId
+            """)
+
+            dataset = db_cursor.fetchall()
+
+            for row in dataset:
+                exercise_id = row[0]
+                exercise_name = row[1]
+                instructor_id = row[2]
+                instructor_name = f'{row[3]} {row[4]}'
+                student_name = f'{row[5]} {row[6]}'
+                student_id = row[7]
+                if exercise_name not in exercises:
+                    exercises[exercise_name] = [(instructor_name, student_name)]
+                else:
+                    if ([instructor_name], [student_name]) not in exercises[exercise_name]:
+                        exercises[exercise_name].append((instructor_name, student_name))
+                    else:
+                        pass
+            for exercise_name, couples in exercises.items():
+                print(f'{exercise_name}:')
+                for couple in couples:
+                    print(f'\t* {couple[0]} assigned this to {couple[1]}')
+
+
+    def CohortReport(self):
+
+        cohorts = dict()
+
+        with sqlite3.connect(self.db_path) as conn:
+            db_cursor = conn.cursor()
+
+            db_cursor.execute("""
+                select
+                    c.Id CohortId,
+                    c.Name,
+                    i.Id InstructorId,
+                    i.FirstName,
+                    i.LastName,
+                    s.FirstName,
+                    s.LastName
+                from Cohort c
+                join Instructor i on i.CohortId = c.Id
+                join Student s on s.CohortId = c.Id
+            """)
+
+            dataset = db_cursor.fetchall()
+
+            for row in dataset:
+                cohort_id = row[0]
+                cohort_name = row[1]
+                instructor_id = row[2]
+                instructor_name = f'{row[3]} {row[4]}'
+                student_name = f'{row[5]} {row[6]}'
+                if cohort_name not in cohorts:
+                    cohorts[cohort_name] = {"instructors": [instructor_name], "students": [student_name] }
+                else:
+                    if instructor_name not in cohorts[cohort_name]["instructors"]:
+                        cohorts[cohort_name]["instructors"].append(instructor_name)
+                    else:
+                        pass
+
+                    if student_name not in cohorts[cohort_name]["students"]:
+                        cohorts[cohort_name]["students"].append(student_name)
+                    else:
+                        pass
+
+            for cohort_name, people in cohorts.items():
+                print(f'{cohort_name}:')
+                print(f'\t instructors:')
+                for instructor in people["instructors"]:
+                        print(f'\t* {instructor} is a teacher in {cohort_name}')
+                print(f'\t students:')
+                for student in people["students"]:
+                        print(f'\t* {student} is a student in {cohort_name}')
+
+
 #     def filtered_exercises(self, language):
 
 #         """Retrieve all cohort names"""
@@ -268,9 +477,13 @@ reports = StudentExerciseReports()
 # reports.all_exercises()
 # reports.JavaScript_exercises()
 # reports.filtered_exercises('JavaScript')  THIS ISN'T WORKING
-reports.all_instructors()
+# reports.all_instructors()
+# reports.ExerciseStudents()
+# reports.StudentExercises()
+# reports.InstructorExercises()
+# reports.ErbodyExercises()
+reports.CohortReport()
 
 # student = Student('Bart', 'Simpson', '@bart', 'Cohort 8')
 # print(f'{student.first_name} {student.last_name} is in {student.cohort}')
-
 
